@@ -38,6 +38,27 @@ static int enabled_devices;
 static int off __read_mostly;
 static int initialized __read_mostly;
 
+#ifdef CONFIG_SMP
+static atomic_t idled = ATOMIC_INIT(0);
+
+#if NR_CPUS > 32
+#error idled CPU mask not big enough for NR_CPUS
+#endif
+
+static void cpuidle_set_idle_cpu(unsigned int cpu)
+{
+	atomic_or(BIT(cpu), &idled);
+}
+
+static void cpuidle_clear_idle_cpu(unsigned int cpu)
+{
+	atomic_andnot(BIT(cpu), &idled);
+}
+#else
+static inline void cpuidle_set_idle_cpu(unsigned int cpu) { }
+static inline void cpuidle_clear_idle_cpu(unsigned int cpu) { }
+#endif
+
 int cpuidle_disabled(void)
 {
 	return off;
@@ -244,11 +265,13 @@ int cpuidle_enter_state(struct cpuidle_device *dev, struct cpuidle_driver *drv,
 	time_start = ns_to_ktime(local_clock());
 
 	stop_critical_timings();
+	cpuidle_set_idle_cpu(dev->cpu);
 	if (!(target_state->flags & CPUIDLE_FLAG_RCU_IDLE))
 		rcu_idle_enter();
 	entered_state = target_state->enter(dev, drv, index);
 	if (!(target_state->flags & CPUIDLE_FLAG_RCU_IDLE))
 		rcu_idle_exit();
+	cpuidle_clear_idle_cpu(dev->cpu);
 	start_critical_timings();
 
 	sched_clock_idle_wakeup_event();
