@@ -1131,7 +1131,7 @@ int psi_show(struct seq_file *m, struct psi_group *group, enum psi_res res)
 		group->avg_next_update = update_averages(group, now);
 	mutex_unlock(&group->avgs_lock);
 
-	for (full = 0; full < 2; full++) {
+	for (full = 0; full < 2 - (res == PSI_CPU); full++) {
 		unsigned long avg[3] = { 0, };
 		u64 total = 0;
 		int w;
