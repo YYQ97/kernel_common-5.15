@@ -1134,6 +1134,8 @@ isolate_success:
 		list_add(&page->lru, &cc->migratepages);
 isolate_success_no_list:
 		cc->nr_migratepages += compound_nr(page);
+		if (!PageAnon(page))
+			cc->nr_migrate_file_pages += compound_nr(page);
 		nr_isolated += compound_nr(page);
 
 		/*
@@ -1174,6 +1176,7 @@ isolate_fail:
 			}
 			putback_movable_pages(&cc->migratepages);
 			cc->nr_migratepages = 0;
+			cc->nr_migrate_file_pages = 0;
 			nr_isolated = 0;
 		}
 
@@ -1320,9 +1323,14 @@ static bool suitable_migration_target(struct compact_control *cc,
 	if (cc->ignore_block_suitable)
 		return true;
 
-	/* If the block is MIGRATE_MOVABLE or MIGRATE_CMA, allow migration */
-	if (is_migrate_movable(get_pageblock_migratetype(page)))
-		return true;
+	if (cc->nr_migrate_file_pages) {
+		if (get_pageblock_migratetype(page) == MIGRATE_MOVABLE)
+			return true;
+	} else {
+		/* If the block is MIGRATE_MOVABLE or MIGRATE_CMA, allow migration */
+		if (is_migrate_movable(get_pageblock_migratetype(page)))
+			return true;
+	}
 
 	/* Otherwise skip the block */
 	return false;
@@ -2345,6 +2353,7 @@ compact_zone(struct compact_control *cc, struct capture_control *capc)
 	cc->total_migrate_scanned = 0;
 	cc->total_free_scanned = 0;
 	cc->nr_migratepages = 0;
+	cc->nr_migrate_file_pages = 0;
 	cc->nr_freepages = 0;
 	INIT_LIST_HEAD(&cc->freepages);
 	INIT_LIST_HEAD(&cc->migratepages);
@@ -2435,6 +2444,7 @@ compact_zone(struct compact_control *cc, struct capture_control *capc)
 			ret = COMPACT_CONTENDED;
 			putback_movable_pages(&cc->migratepages);
 			cc->nr_migratepages = 0;
+			cc->nr_migrate_file_pages = 0;
 			goto out;
 		case ISOLATE_NONE:
 			if (update_cached) {
@@ -2462,6 +2472,7 @@ compact_zone(struct compact_control *cc, struct capture_control *capc)
 
 		/* All pages were either migrated or will be released */
 		cc->nr_migratepages = 0;
+		cc->nr_migrate_file_pages = 0;
 		if (err) {
 			putback_movable_pages(&cc->migratepages);
 			/*
