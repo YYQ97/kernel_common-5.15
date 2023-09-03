@@ -421,9 +421,6 @@ struct tcp_sock {
 	struct saved_syn *saved_syn;
 
 	ANDROID_KABI_RESERVE(1);
-
-/* Rerouting information */
-	u16	ecn_rehash;	/* PLB triggered rehash attempts */
 };
 
 enum tsq_enum {
