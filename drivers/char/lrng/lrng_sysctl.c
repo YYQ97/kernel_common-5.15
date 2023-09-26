@@ -86,7 +86,7 @@ void lrng_sysctl_update_max_write_thresh(u32 new_digestsize)
 	mb();
 }
 
-static struct ctl_table random_table[] = {
+struct ctl_table random_table[] = {
 	{
 		.procname	= "poolsize",
 		.maxlen		= sizeof(int),
@@ -130,10 +130,3 @@ static struct ctl_table random_table[] = {
 		.extra1		= &lrng_drng_reseed_max_min,
 	},
 };
-
-static int __init random_sysctls_init(void)
-{
-	register_sysctl_init("kernel/random", random_table);
-	return 0;
-}
-device_initcall(random_sysctls_init);
