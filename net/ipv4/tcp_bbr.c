@@ -491,7 +491,7 @@ static u32 bbr_tso_segs_generic(struct sock *sk, unsigned int mss_now,
 	if (bbr_param(sk, tso_rtt_shift)) {
 		r = bbr->min_rtt_us >> bbr_param(sk, tso_rtt_shift);
 		if (r < BITS_PER_TYPE(u32))   /* prevent undefined behavior */
-			bytes += GSO_MAX_SIZE >> r;
+			bytes += GSO_LEGACY_MAX_SIZE >> r;
 	}
 
 	bytes = min_t(u32, bytes, gso_max_size - 1 - MAX_TCP_HEADER);
@@ -511,7 +511,7 @@ static u32 bbr_tso_segs_goal(struct sock *sk)
 {
 	struct tcp_sock *tp = tcp_sk(sk);
 
-	return  bbr_tso_segs_generic(sk, tp->mss_cache, GSO_MAX_SIZE);
+	return  bbr_tso_segs_generic(sk, tp->mss_cache, GSO_LEGACY_MAX_SIZE);
 }
 
 /* Save "last known good" cwnd so we can restore it after losses or PROBE_RTT */
@@ -1536,10 +1536,10 @@ static void bbr_pick_probe_wait(struct sock *sk)
 
 	/* Decide the random round-trip bound for wait until probe: */
 	bbr->rounds_since_probe =
-		prandom_u32_max(bbr_param(sk, bw_probe_rand_rounds));
+		get_random_u32_below(bbr_param(sk, bw_probe_rand_rounds));
 	/* Decide the random wall clock bound for wait until probe: */
 	bbr->probe_wait_us = bbr_param(sk, bw_probe_base_us) +
-			     prandom_u32_max(bbr_param(sk, bw_probe_rand_us));
+			     get_random_u32_below(bbr_param(sk, bw_probe_rand_us));
 }
 
 static void bbr_set_cycle_idx(struct sock *sk, int cycle_idx)
@@ -2351,6 +2351,27 @@ static struct tcp_congestion_ops tcp_bbr_cong_ops __read_mostly = {
 	.tso_segs	= bbr_tso_segs,
 	.get_info	= bbr_get_info,
 	.set_state	= bbr_set_state,
+};
+
+BTF_SET8_START(tcp_bbr_check_kfunc_ids)
+#ifdef CONFIG_X86
+#ifdef CONFIG_DYNAMIC_FTRACE
+BTF_ID_FLAGS(func, bbr_init)
+BTF_ID_FLAGS(func, bbr_main)
+BTF_ID_FLAGS(func, bbr_sndbuf_expand)
+BTF_ID_FLAGS(func, bbr_skb_marked_lost)
+BTF_ID_FLAGS(func, bbr_undo_cwnd)
+BTF_ID_FLAGS(func, bbr_cwnd_event)
+BTF_ID_FLAGS(func, bbr_ssthresh)
+BTF_ID_FLAGS(func, bbr_tso_segs)
+BTF_ID_FLAGS(func, bbr_set_state)
+#endif
+#endif
+BTF_SET8_END(tcp_bbr_check_kfunc_ids)
+
+static const struct btf_kfunc_id_set tcp_bbr_kfunc_set = {
+	.owner = THIS_MODULE,
+	.set   = &tcp_bbr_check_kfunc_ids,
 };
 
 static int __init bbr_register(void)
