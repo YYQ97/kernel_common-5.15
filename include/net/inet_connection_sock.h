@@ -136,11 +136,11 @@ struct inet_connection_sock {
 	} icsk_mtup;
 	u32			  icsk_probes_tstamp;
 	u32			  icsk_user_timeout;
-	
+
 	ANDROID_KABI_RESERVE(1);
 
-#define ICSK_CA_PRIV_SIZE      (144)
-	u64			  icsk_ca_priv[ICSK_CA_PRIV_SIZE / sizeof(u64)];
+	u64			  icsk_ca_priv[104 / sizeof(u64)];
+#define ICSK_CA_PRIV_SIZE	  sizeof_field(struct inet_connection_sock, icsk_ca_priv)
 };
 
 #define ICSK_TIME_RETRANS	1	/* Retransmit timer */
