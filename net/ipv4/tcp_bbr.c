@@ -71,8 +71,6 @@
 
 #define bbr_param(sk,name)	(bbr_ ## name)
 
-#pragma clang diagnostic ignored "-Wconstant-logical-operand"
-
 /* Scale factor for rate in pkt/uSec unit to avoid truncation in bandwidth
  * estimation. The rate unit ~= (1500 bytes / 1 usec / 2^24) ~= 715 bps.
  * This handles bandwidths from 0.06pps (715bps) to 256Mpps (3Tbps) in a u32.
