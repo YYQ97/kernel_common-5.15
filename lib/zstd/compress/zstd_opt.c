@@ -9,18 +9,6 @@
  * You may select, at your option, one of the above-listed licenses.
  */
 
-/*
- * Disable inlining for the optimal parser for the kernel build.
- * It is unlikely to be used in the kernel, and where it is used
- * latency shouldn't matter because it is very slow to begin with.
- * We prefer a ~180KB binary size win over faster optimal parsing.
- *
- * TODO(https://github.com/facebook/zstd/issues/2862):
- * Improve the code size of the optimal parser in general, so we
- * don't need this hack for the kernel build.
- */
-#define ZSTD_NO_INLINE 1
-
 #include "zstd_compress_internal.h"
 #include "hist.h"
 #include "zstd_opt.h"
@@ -418,9 +406,11 @@ MEM_STATIC U32 ZSTD_readMINMATCH(const void* memPtr, U32 length)
 
 /* Update hashTable3 up to ip (excluded)
    Assumption : always within prefix (i.e. not within extDict) */
-static U32 ZSTD_insertAndFindFirstIndexHash3 (const ZSTD_matchState_t* ms,
-                                              U32* nextToUpdate3,
-                                              const BYTE* const ip)
+static
+ZSTD_ALLOW_POINTER_OVERFLOW_ATTR
+U32 ZSTD_insertAndFindFirstIndexHash3 (const ZSTD_matchState_t* ms,
+                                       U32* nextToUpdate3,
+                                       const BYTE* const ip)
 {
     U32* const hashTable3 = ms->hashTable3;
     U32 const hashLog3 = ms->hashLog3;
@@ -447,7 +437,9 @@ static U32 ZSTD_insertAndFindFirstIndexHash3 (const ZSTD_matchState_t* ms,
  * @param ip assumed <= iend-8 .
  * @param target The target of ZSTD_updateTree_internal() - we are filling to this position
  * @return : nb of positions added */
-static U32 ZSTD_insertBt1(
+static
+ZSTD_ALLOW_POINTER_OVERFLOW_ATTR
+U32 ZSTD_insertBt1(
                 const ZSTD_matchState_t* ms,
                 const BYTE* const ip, const BYTE* const iend,
                 U32 const target,
@@ -566,6 +558,7 @@ static U32 ZSTD_insertBt1(
 }
 
 FORCE_INLINE_TEMPLATE
+ZSTD_ALLOW_POINTER_OVERFLOW_ATTR
 void ZSTD_updateTree_internal(
                 ZSTD_matchState_t* ms,
                 const BYTE* const ip, const BYTE* const iend,
@@ -591,7 +584,9 @@ void ZSTD_updateTree(ZSTD_matchState_t* ms, const BYTE* ip, const BYTE* iend) {
     ZSTD_updateTree_internal(ms, ip, iend, ms->cParams.minMatch, ZSTD_noDict);
 }
 
-FORCE_INLINE_TEMPLATE U32
+FORCE_INLINE_TEMPLATE
+ZSTD_ALLOW_POINTER_OVERFLOW_ATTR
+U32
 ZSTD_insertBtAndGetAllMatches (
                 ZSTD_match_t* matches,  /* store result (found matches) in this table (presumed large enough) */
                 ZSTD_matchState_t* ms,
@@ -832,7 +827,9 @@ typedef U32 (*ZSTD_getAllMatchesFn)(
     U32 const ll0,
     U32 const lengthToBeat);
 
-FORCE_INLINE_TEMPLATE U32 ZSTD_btGetAllMatches_internal(
+FORCE_INLINE_TEMPLATE
+ZSTD_ALLOW_POINTER_OVERFLOW_ATTR
+U32 ZSTD_btGetAllMatches_internal(
         ZSTD_match_t* matches,
         ZSTD_matchState_t* ms,
         U32* nextToUpdate3,
@@ -1073,7 +1070,9 @@ listStats(const U32* table, int lastEltID)
 
 #endif
 
-FORCE_INLINE_TEMPLATE size_t
+FORCE_INLINE_TEMPLATE
+ZSTD_ALLOW_POINTER_OVERFLOW_ATTR
+size_t
 ZSTD_compressBlock_opt_generic(ZSTD_matchState_t* ms,
                                seqStore_t* seqStore,
                                U32 rep[ZSTD_REP_NUM],
@@ -1401,11 +1400,12 @@ size_t ZSTD_compressBlock_btopt(
  * only works on first block, with no dictionary and no ldm.
  * this function cannot error out, its narrow contract must be respected.
  */
-static void
-ZSTD_initStats_ultra(ZSTD_matchState_t* ms,
-                     seqStore_t* seqStore,
-                     U32 rep[ZSTD_REP_NUM],
-               const void* src, size_t srcSize)
+static
+ZSTD_ALLOW_POINTER_OVERFLOW_ATTR
+void ZSTD_initStats_ultra(ZSTD_matchState_t* ms,
+                          seqStore_t* seqStore,
+                          U32 rep[ZSTD_REP_NUM],
+                    const void* src, size_t srcSize)
 {
     U32 tmpRep[ZSTD_REP_NUM];  /* updated rep codes will sink here */
     ZSTD_memcpy(tmpRep, rep, sizeof(tmpRep));
