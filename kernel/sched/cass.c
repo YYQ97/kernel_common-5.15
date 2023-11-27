@@ -180,12 +180,12 @@ static int cass_best_cpu(struct task_struct *p, int prev_cpu, bool sync)
 }
 
 static int cass_select_task_rq_fair(struct task_struct *p, int prev_cpu,
-				    int wake_flags)
+				    int sd_flag, int wake_flags)
 {
 	bool sync;
 
 	/* Don't balance on exec since we don't know what @p will look like */
-	if (wake_flags & WF_EXEC)
+	if (sd_flag & SD_BALANCE_EXEC)
 		return prev_cpu;
 
 	/*
@@ -197,7 +197,7 @@ static int cass_select_task_rq_fair(struct task_struct *p, int prev_cpu,
 		return cpumask_first(p->cpus_ptr);
 
 	/* cass_best_cpu() needs the task's utilization, so sync it up */
-	if (!(wake_flags & WF_TTWU))
+	if (!(sd_flag & SD_BALANCE_FORK))
 		sync_entity_load_avg(&p->se);
 
 	sync = (wake_flags & WF_SYNC) && !(current->flags & PF_EXITING);
