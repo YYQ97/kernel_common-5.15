@@ -343,7 +343,7 @@ static int deferred_probe_initcall(void)
 	flush_work(&deferred_probe_work);
 
 	if (driver_deferred_probe_timeout > 0) {
-		queue_delayed_work(system_power_efficient_wq, &deferred_probe_timeout_work,
+		schedule_delayed_work(&deferred_probe_timeout_work,
 			driver_deferred_probe_timeout * HZ);
 	}
 	return 0;
