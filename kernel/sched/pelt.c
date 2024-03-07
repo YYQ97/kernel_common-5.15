@@ -141,7 +141,7 @@ static u64 decay_load(u64 val, u64 n)
 		local_n %= LOAD_AVG_PERIOD;
 	}
 
-	val = mul_u64_u32_shr(val, runnable_avg_yN_inv[local_n], 32);
+	val = mul_u64_u32_shr(val, pelt_runnable_avg_yN_inv[local_n], 32);
 	return val;
 }
 
