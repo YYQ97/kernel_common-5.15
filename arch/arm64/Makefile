@@ -37,7 +37,7 @@ $(warning Detected assembler with broken .inst; disassembly will be unreliable)
 endif
 
 # Optimize for CPU
-KBUILD_CFLAGS	+= -march=armv9-a+crc+simd+fp16+crypto+dotprod+sve2+sve+lse+sme2+memtag -mcpu=cortex-a510
+KBUILD_CFLAGS	+= -march=armv9-a+crc+simd+fp16+crypto+dotprod+sve2+sve+lse+sme2+memtag -mcpu=cortex-a510+crypto
 
 KBUILD_CFLAGS	+= -mgeneral-regs-only	\
 		   $(compat_vdso) $(cc_has_k_constraint)
