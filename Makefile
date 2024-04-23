@@ -791,6 +791,11 @@ KBUILD_CFLAGS	+= $(call cc-disable-warning, format-truncation)
 KBUILD_CFLAGS	+= $(call cc-disable-warning, format-overflow)
 KBUILD_CFLAGS	+= $(call cc-disable-warning, address-of-packed-member)
 
+#Enable MLGO for register allocation.
+KBUILD_CFLAGS   += -mllvm -regalloc-enable-advisor=release
+#Enable hot cold split optimization
+KBUILD_CFLAGS   += -mllvm -hot-cold-split=true
+
 ifdef CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE
 KBUILD_CFLAGS += -O2 -funroll-loops -fno-unwind-tables
 else ifdef CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE_O3
@@ -1004,6 +1009,8 @@ ifeq ($(shell test $(CONFIG_LLD_VERSION) -lt 130000; echo $$?),0)
 KBUILD_LDFLAGS	+= -plugin-opt=-warn-stack-size=$(CONFIG_FRAME_WARN)
 endif
 endif
+#Enable MLGO for register allocation.
+KBUILD_LDFLAGS += -mllvm -regalloc-enable-advisor=release
 endif
 
 ifdef CONFIG_LTO
