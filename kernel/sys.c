@@ -1260,21 +1260,21 @@ DECLARE_RWSEM(uts_sem);
 #define override_architecture(name)	0
 #endif
 
-static void override_custom_release(char __user *release, size_t len)
+static int override_custom_release(char __user *release, size_t len)
 {
 #ifdef CONFIG_UNAME_OVERRIDE
 	char *buf;
+	int ret = 0;
 
 	buf = kstrdup_quotable_cmdline(current, GFP_KERNEL);
-	if (buf == NULL)
-		return;
 
 	if (strstr(buf, CONFIG_UNAME_OVERRIDE_TARGET)) {
-		copy_to_user(release, CONFIG_UNAME_OVERRIDE_STRING,
+		ret = copy_to_user(release, CONFIG_UNAME_OVERRIDE_STRING,
 			       strlen(CONFIG_UNAME_OVERRIDE_STRING) + 1);
 	}
 
 	kfree(buf);
+	return ret;
 #endif
 }
 
@@ -1320,7 +1320,9 @@ SYSCALL_DEFINE1(newuname, struct new_utsname __user *, name)
 	if (copy_to_user(name, &tmp, sizeof(tmp)))
 		return -EFAULT;
 
-	override_custom_release(name->release, sizeof(name->release));
+	if (override_custom_release(name->release, sizeof(name->release))){
+			return -EFAULT;
+	}
 	if (override_release(name->release, sizeof(name->release)))
 		return -EFAULT;
 	if (override_architecture(name))
