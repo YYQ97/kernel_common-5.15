@@ -1859,7 +1859,7 @@ static struct ctl_table kern_table[] = {
 		.procname	= "sched_pelt_multiplier",
 		.data		= &sysctl_sched_pelt_multiplier,
 		.maxlen		= sizeof(unsigned int),
-		.mode		= 0644,
+		.mode		= 0444,
 		.proc_handler	= sched_pelt_multiplier,
 	},
 #endif
