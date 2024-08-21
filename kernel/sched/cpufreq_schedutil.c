@@ -383,7 +383,7 @@ static void sugov_update_single_freq(struct update_util_data *hook, u64 time,
 
 	if (!sugov_update_single_common(sg_cpu, time, flags))
 		return;
-		
+
 	next_f = get_next_freq(sg_policy, sg_cpu->util, sg_cpu->max);
 
 	if (!sugov_update_next_freq(sg_policy, time, next_f))
