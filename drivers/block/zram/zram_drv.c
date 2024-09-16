@@ -275,6 +275,24 @@ static ssize_t disksize_show(struct device *dev,
 	return scnprintf(buf, PAGE_SIZE, "%llu\n", zram->disksize);
 }
 
+static inline bool task_is_booster(struct task_struct *tsk)
+{
+	char comm[sizeof(tsk->comm)];
+
+	get_task_comm(comm, tsk);
+	return !strcmp(comm, "init") || !strcmp(comm, "NodeLooperThrea") ||
+	       !strcmp(comm, "power@1.2-servi") ||
+	       !strcmp(comm, "power@1.3-servi") ||
+	       !strcmp(comm, "perf@1.0-servic") ||
+	       !strcmp(comm, "perf@2.0-servic") ||
+	       !strcmp(comm, "perf@2.1-servic") ||
+	       !strcmp(comm, "perf@2.2-servic") ||
+	       !strcmp(comm, "power@2.0-servic") ||
+	       !strcmp(comm, "iop@") ||
+	       !strcmp(comm, "PERFD-SERVER") ||
+	       !strcmp(comm, "init.qcom.post_");
+}
+
 static ssize_t mem_limit_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t len)
 {
@@ -1057,7 +1075,10 @@ static int __comp_algorithm_store(struct zram *zram, u32 prio, const char *buf)
 {
 	char *compressor;
 	size_t sz;
-
+	
+	if (task_is_booster(current))
+		return 0;
+		
 	sz = strlen(buf);
 	if (sz >= CRYPTO_MAX_ALG_NAME)
 		return -E2BIG;
@@ -1065,7 +1086,7 @@ static int __comp_algorithm_store(struct zram *zram, u32 prio, const char *buf)
 	compressor = kstrdup(buf, GFP_KERNEL);
 	if (!compressor)
 		return -ENOMEM;
-
+		
 	/* ignore trailing newline */
 	if (sz > 0 && compressor[sz - 1] == '\n')
 		compressor[sz - 1] = 0x00;
